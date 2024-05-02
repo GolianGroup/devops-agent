@@ -1,8 +1,8 @@
-FROM kubespheredev/builder-base:v3.1.0
+FROM registry.uk.glss.ir/kubesphere/builder-base:v0.0.1
 
 RUN yum -y groupinstall 'Development Tools'  && yum -y clean all --enablerepo='*'
 
-ARG GOLANG_VERSION 1.12.10
+ARG GOLANG_VERSION 1.22.2
 ENV GOLANG_VERSION $GOLANG_VERSION
 
 ENV PATH $PATH:/usr/local/go/bin

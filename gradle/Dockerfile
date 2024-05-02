@@ -1,7 +1,7 @@
-FROM kubespheredev/builder-base:v3.1.0
+FROM registry.uk.glss.ir/kubesphere/builder-base:v0.0.1
 
 # java
-ENV JAVA_VERSIOIN 1.8.0
+ENV JAVA_VERSIOIN 11
 RUN yum install -y java-${JAVA_VERSIOIN}-openjdk-devel java-${JAVA_VERSIOIN}-openjdk-devel.i686 && \
     yum -y clean all
 

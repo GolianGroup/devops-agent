@@ -1,6 +1,6 @@
-FROM kubespheredev/builder-base:v3.1.0
+FROM registry.uk.glss.ir/kubesphere/builder-base:v0.0.1
 
-ARG JDK_VERSION 1.8.0
+ARG JDK_VERSION 11
 ARG JDK_HOME /usr/lib/jvm/java-${JDK_VERSION}-openjdk
 
 # java
