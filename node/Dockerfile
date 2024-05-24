@@ -3,8 +3,9 @@ FROM builder-base
 ARG NODE_VERSION=18.20.2
 ENV NODE_VERSION $NODE_VERSION
 
-RUN ARCH= && uArch="$(uname -m)" \
-  && case "${uArch##*-}" in \
+# Determine architecture and install Node.js
+RUN uArch="$(uname -m)" \
+  && case "${uArch}" in \
   x86_64) ARCH='x64';; \
   aarch64) ARCH='arm64';; \
   *) echo "unsupported architecture"; exit 1 ;; \
@@ -29,13 +30,17 @@ RUN ARCH= && uArch="$(uname -m)" \
   && grep " node-v$NODE_VERSION-linux-$ARCH.tar.xz\$" SHASUMS256.txt | sha256sum -c - \
   && tar -xJf "node-v$NODE_VERSION-linux-$ARCH.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
   && rm "node-v$NODE_VERSION-linux-$ARCH.tar.xz" SHASUMS256.txt \
-  && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
-  && yum install -y nodejs gcc-c++ make bzip2 GConf2 gtk2 chromedriver chromium xorg-x11-server-Xvfb
+  && ln -s /usr/local/bin/node /usr/local/bin/nodejs
+
+# Install necessary tools and libraries
+RUN apt-get update && apt-get install -y \
+  gcc g++ make bzip2 libgtk2.0-0 chromium-chromedriver xvfb \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN npm i -g watch-cli vsce typescript
 
 # Yarn
-ARG YARN_VERSION 1.16.0
+ARG YARN_VERSION=1.16.0
 ENV YARN_VERSION $YARN_VERSION
 RUN curl -f -L -o /tmp/yarn.tgz https://github.com/yarnpkg/yarn/releases/download/v${YARN_VERSION}/yarn-v${YARN_VERSION}.tar.gz && \
   tar xf /tmp/yarn.tgz && \

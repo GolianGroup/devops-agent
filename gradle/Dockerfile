@@ -11,24 +11,17 @@ ENV GRADLE_HOME $GRADLE_HOME
 ENV JAVA_VERSION $JDK_VERSION
 ENV JAVA_HOME $JDK_HOME
 
-# java
-RUN if [ "x${JAVA_VERSION}" = "x17" ]; then \
-    ARCH= && uArch="$(uname -m)" \
-    && case "${uArch##*-}" in \
-    x86_64) ARCH='x64';; \
-    aarch64) ARCH='aarch64';; \
-    *) echo "unsupported architecture"; exit 1 ;; \
-    esac \
-    && wget https://download.oracle.com/java/${JAVA_VERSION}/latest/jdk-${JAVA_VERSION}_linux-${ARCH}_bin.rpm \
-    && rpm -ivh jdk-${JAVA_VERSION}_linux-${ARCH}_bin.rpm; \
-    else \
-    yum install -y java-${JAVA_VERSION}-openjdk-devel java-${JAVA_VERSION}-openjdk-devel.i686; \
-    fi
+# Install dependencies
+RUN apt-get update && apt-get install -y wget curl unzip && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# gradle6
-ENV PATH ${GRADLE_HOME}/bin:$PATH
-ENV PATH $JAVA_HOME/bin:$PATH
+# Install Java
+RUN apt-get update && apt-get install -y openjdk-${JAVA_VERSION}-jdk
 
+# Set PATH for Gradle and Java
+ENV PATH ${GRADLE_HOME}/bin:$JAVA_HOME/bin:$PATH
+
+# Install Gradle
 RUN curl -fSL https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -o gradle.zip && \
     echo "$(curl -sLf https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip.sha256) gradle.zip" | sha256sum --check && \
     unzip -q gradle.zip -d /usr/local && \

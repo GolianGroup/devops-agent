@@ -1,5 +1,6 @@
 FROM builder-base
 
+# Set locale environment variables
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
@@ -9,31 +10,28 @@ ARG PYTHON_VERSION=3.12
 ENV PYTHON_VERSION $PYTHON_VERSION
 
 # Install necessary tools and libraries
-RUN dnf -y install epel-release dnf-plugins-core && \
-    dnf config-manager --set-enabled powertools && \
-    dnf clean all && \
-    dnf -y groupinstall "Development Tools" && \
-    dnf -y install nc openssl-devel bzip2 bzip2-devel libffi-devel zlib-devel xz-devel glibc-devel \
-    openblas-devel lcms2-devel openjpeg2-devel libcurl-devel curl sqlite-devel \
-    postgresql-devel gcc libffi-devel freetype-devel libpng-devel libjpeg-devel \
-    zlib-devel glibc-locale-source glibc-langpack-en libtiff-devel tk-devel tcl-devel libxslt-devel git ncurses-devel gdbm-devel readline-devel && \
-    dnf clean all
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y software-properties-common build-essential ncurses-dev libncursesw5-dev libreadline-dev \
+    libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev \
+    liblzma-dev libblas-dev liblapack-dev libjpeg-dev libpng-dev libtiff-dev libopenjp2-7-dev \
+    liblcms2-dev libcurl4-openssl-dev curl libpq-dev git locales && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Generate locale
-RUN localedef -c -i en_US -f UTF-8 en_US.UTF-8
+RUN locale-gen en_US.UTF-8
 
 # Install Miniconda
-RUN ARCH= && uArch="$(uname -m)" \
-    && case "${uArch##*-}" in \
+RUN ARCH="$(uname -m)" && \
+    case "${ARCH}" in \
     x86_64) ARCH='x86_64';; \
     aarch64) ARCH='aarch64';; \
     *) echo "unsupported architecture"; exit 1 ;; \
-    esac \
-    && MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-py310_$MINICONDA_VERSION-Linux-${ARCH}.sh" \
-    && wget --quiet $MINICONDA_URL -O ~/miniconda.sh \
-    && chmod +x ~/miniconda.sh \
-    && ~/miniconda.sh -b -p /opt/miniconda \
-    && rm ~/miniconda.sh
+    esac && \
+    MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-py310_$MINICONDA_VERSION-Linux-${ARCH}.sh" && \
+    wget --quiet $MINICONDA_URL -O ~/miniconda.sh && \
+    chmod +x ~/miniconda.sh && \
+    ~/miniconda.sh -b -p /opt/miniconda && \
+    rm ~/miniconda.sh
 ENV PATH /opt/miniconda/bin:$PATH
 
 # Create a Python virtual environment

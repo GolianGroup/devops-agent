@@ -10,33 +10,26 @@ ENV MAVEN_VERSION $MAVEN_VERSION
 ARG ANT_VERSION=1.10.7
 ENV ANT_VERSION $ANT_VERSION
 
-# java
-RUN if [ "x${JAVA_VERSION}" = "x17" ]; then \
-      ARCH= && uArch="$(uname -m)" \
-        && case "${uArch##*-}" in \
-          x86_64) ARCH='x64';; \
-          aarch64) ARCH='aarch64';; \
-          *) echo "unsupported architecture"; exit 1 ;; \
-        esac \
-      && wget https://download.oracle.com/java/${JAVA_VERSION}/latest/jdk-${JAVA_VERSION}_linux-${ARCH}_bin.rpm \
-      && rpm -ivh jdk-${JAVA_VERSION}_linux-${ARCH}_bin.rpm; \
-    else \
-      yum install -y java-${JAVA_VERSION}-openjdk-devel java-${JAVA_VERSION}-openjdk-devel.i686; \
-    fi
-# maven
+# Install dependencies
+RUN apt-get update && apt-get install -y wget curl tar
+
+# Install Java
+RUN apt-get update && apt-get install -y openjdk-${JAVA_VERSION}-jdk
+
+# Install Maven
 RUN curl -f -L https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar -C /opt -xzv
 ENV M2_HOME /opt/apache-maven-$MAVEN_VERSION
 ENV JAVA_HOME $JDK_HOME
 ENV maven.home $M2_HOME
 ENV M2 $M2_HOME/bin
-ENV PATH $M2:$PATH:JAVA_HOME/bin
+ENV PATH $M2:$PATH:$JAVA_HOME/bin
 
-# ant
+# Install Ant
 RUN cd && \
-    wget -q https://archive.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz && \
-    tar -xzf apache-ant-${ANT_VERSION}-bin.tar.gz && \
-    mv apache-ant-${ANT_VERSION} /opt/ant && \
-    rm apache-ant-${ANT_VERSION}-bin.tar.gz
+  wget -q https://archive.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz && \
+  tar -xzf apache-ant-${ANT_VERSION}-bin.tar.gz && \
+  mv apache-ant-${ANT_VERSION} /opt/ant && \
+  rm apache-ant-${ANT_VERSION}-bin.tar.gz
 ENV ANT_HOME /opt/ant
 ENV PATH ${PATH}:/opt/ant/bin
 
