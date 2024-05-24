@@ -6,7 +6,7 @@ echo $ARCH
 
 if [[ ${EXCLUDE_DOCKER} != '1' ]]; then
   # Docker
-  DOCKER_VERSION=23.0.3
+  DOCKER_VERSION=26.1.3
   if [[ ${ARCH} == 'x86_64' ]]; then
     curl -f https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz | tar xvz && \
     mv docker/docker /usr/bin/ && \
@@ -22,15 +22,15 @@ if [[ ${EXCLUDE_DOCKER} != '1' ]]; then
   fi
 
   # Docker Buildx
-  BUILDX_VERSION=0.14.0
+  BUILDX_VERSION=0.14.1
   mkdir -p /root/.docker/cli-plugins
   curl -SL https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64 -o /root/.docker/cli-plugins/docker-buildx
   chmod +x /root/.docker/cli-plugins/docker-buildx
 fi
 
 # Helm
-HELM_VERSION=2.11.0
-HELM3_VERSIOIN=3.5.0
+HELM_VERSION=2.17.0
+HELM3_VERSIOIN=3.15.1
 
 if [[ ${ARCH} == 'x86_64' ]]; then
   curl -f https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz  | tar xzv && \
@@ -73,7 +73,7 @@ else
 fi
 
 # ks
-KS_VERSION=0.0.64
+KS_VERSION=0.0.71
 if [[ ${ARCH} == 'x86_64' ]]; then
   curl -fL https://github.com/kubesphere-sigs/ks/releases/download/v${KS_VERSION}/ks-linux-amd64.tar.gz | tar xzv && \
   mv ks /usr/bin/
@@ -87,7 +87,7 @@ else
 fi
 
 # kustomize
-KUSTOMIZE_VERSION=4.5.3
+KUSTOMIZE_VERSION=5.4.2
 if [[ ${ARCH} == 'x86_64' ]]; then
   curl -fL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz | tar xzv && \
   mv kustomize /usr/bin/

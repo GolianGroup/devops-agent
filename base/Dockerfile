@@ -7,8 +7,8 @@ RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo && \
 
 RUN dnf update -y && \
   dnf install -y epel-release && \
-  dnf install -y autoconf nc python3 python3-pip python3-devel python3-setuptools python3-wheel && \
-  dnf install -y gcc gcc-c++ make wget curl unzip bzip2 openssl-devel expat-devel gettext-devel perl-devel zlib-devel && \
+  dnf install -y autoconf git nc python3 python3-pip python3-devel python3-setuptools python3-wheel && \
+  dnf install -y gcc gcc-c++ curl-devel make wget curl unzip bzip2 openssl-devel expat-devel gettext-devel perl-devel zlib-devel && \
   dnf clean all
 
 # Add Amazon Corretto repository
@@ -21,22 +21,6 @@ RUN yum install -y java-17-amazon-corretto-devel && \
 
 # Set JAVA_HOME environment variable
 ENV JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto
-
-# Install dependencies required for Git HTTPS support
-RUN dnf install -y curl-devel expat-devel gettext-devel openssl-devel zlib-devel && \
-  dnf clean all
-
-RUN wget https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.9.5.tar.gz && \
-  tar zxvf git-2.9.5.tar.gz --no-same-owner && \
-  cd git-2.9.5 && \
-  make configure && \
-  ./configure prefix=/usr/local/git/ && \
-  make && \
-  make install && \
-  mv /usr/local/git/bin/git /usr/bin/ && \
-  cd ..&& \
-  rm -rf git-2.9.5.tar.gz git-2.9.5 && \
-  git version
 
 # Set the locale(en_US.UTF-8)
 ENV LANG en_US.UTF-8
@@ -57,8 +41,8 @@ ENV PATH $PATH:/usr/bin/sonar-scanner-5.0.1.3006-linux/bin
 # Set the PATH environment variable to include Kaniko
 ENV PATH=$PATH:/usr/local/bin
 
-COPY ./ ./
-RUN ./hack/install_utils.sh && rm -rf ./*
+COPY ./hack/install_utils.sh ./hack/install_utils.sh
+RUN ./hack/install_utils.sh && rm -rf ./hack/install_utils.sh
 
 # Set the PATH environment variable to include Docker Buildx
 ENV PATH=$PATH:/root/.docker/cli-plugins
