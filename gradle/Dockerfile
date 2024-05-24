@@ -1,23 +1,37 @@
-FROM registry.uk.glss.ir/kubesphere/builder-base:v0.0.1
+FROM builder-base
+
+ARG JDK_VERSION=17
+ENV JDK_VERSION $JDK_VERSION
+ARG JDK_HOME=/usr/lib/jvm/java-${JDK_VERSION}-openjdk
+ENV JDK_HOME $JDK_HOME
+ARG GRADLE_VERSION=6.9.1
+ENV GRADLE_VERSION $GRADLE_VERSION
+ARG GRADLE_HOME=/usr/local/gradle-${GRADLE_VERSION}
+ENV GRADLE_HOME $GRADLE_HOME
+ENV JAVA_VERSION $JDK_VERSION
+ENV JAVA_HOME $JDK_HOME
 
 # java
-ENV JAVA_VERSIOIN 11
-RUN yum install -y java-${JAVA_VERSIOIN}-openjdk-devel java-${JAVA_VERSIOIN}-openjdk-devel.i686 && \
-    yum -y clean all
+RUN if [ "x${JAVA_VERSION}" = "x17" ]; then \
+    ARCH= && uArch="$(uname -m)" \
+    && case "${uArch##*-}" in \
+    x86_64) ARCH='x64';; \
+    aarch64) ARCH='aarch64';; \
+    *) echo "unsupported architecture"; exit 1 ;; \
+    esac \
+    && wget https://download.oracle.com/java/${JAVA_VERSION}/latest/jdk-${JAVA_VERSION}_linux-${ARCH}_bin.rpm \
+    && rpm -ivh jdk-${JAVA_VERSION}_linux-${ARCH}_bin.rpm; \
+    else \
+    yum install -y java-${JAVA_VERSION}-openjdk-devel java-${JAVA_VERSION}-openjdk-devel.i686; \
+    fi
 
 # gradle6
-ENV GRADLE_VERSION 6.9.1
-ENV GRADLE_HOME /usr/local/gradle-${GRADLE_VERSION}
 ENV PATH ${GRADLE_HOME}/bin:$PATH
+ENV PATH $JAVA_HOME/bin:$PATH
 
 RUN curl -fSL https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -o gradle.zip && \
     echo "$(curl -sLf https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip.sha256) gradle.zip" | sha256sum --check && \
     unzip -q gradle.zip -d /usr/local && \
     rm -f gradle.zip
-
-# Set JDK to be 32bit
-COPY set_java $GRADLE_HOME
-RUN $GRADLE_HOME/set_java && \
-    rm -f $GRADLE_HOME/set_java
 
 CMD ["gradle","--version"]

@@ -1,11 +1,16 @@
-FROM registry.uk.glss.ir/kubesphere/builder-base:v0.0.1
+FROM builder-base
 
-ARG JDK_VERSION 11
-ARG JDK_HOME /usr/lib/jvm/java-${JDK_VERSION}-openjdk
+ARG JDK_VERSION=17
+ENV JDK_VERSION $JDK_VERSION
+ARG JDK_HOME=/usr/lib/jvm/java-${JDK_VERSION}-openjdk
+ENV JDK_HOME $JDK_HOME
+ENV JAVA_VERSION $JDK_VERSION
+ARG MAVEN_VERSION=3.5.3
+ENV MAVEN_VERSION $MAVEN_VERSION
+ARG ANT_VERSION=1.10.7
+ENV ANT_VERSION $ANT_VERSION
 
 # java
-ENV JAVA_VERSION $JDK_VERSION
-
 RUN if [ "x${JAVA_VERSION}" = "x17" ]; then \
       ARCH= && uArch="$(uname -m)" \
         && case "${uArch##*-}" in \
@@ -19,7 +24,6 @@ RUN if [ "x${JAVA_VERSION}" = "x17" ]; then \
       yum install -y java-${JAVA_VERSION}-openjdk-devel java-${JAVA_VERSION}-openjdk-devel.i686; \
     fi
 # maven
-ENV MAVEN_VERSION 3.5.3
 RUN curl -f -L https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar -C /opt -xzv
 ENV M2_HOME /opt/apache-maven-$MAVEN_VERSION
 ENV JAVA_HOME $JDK_HOME
@@ -28,7 +32,6 @@ ENV M2 $M2_HOME/bin
 ENV PATH $M2:$PATH:JAVA_HOME/bin
 
 # ant
-ENV ANT_VERSION 1.10.7
 RUN cd && \
     wget -q https://archive.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz && \
     tar -xzf apache-ant-${ANT_VERSION}-bin.tar.gz && \
@@ -36,13 +39,5 @@ RUN cd && \
     rm apache-ant-${ANT_VERSION}-bin.tar.gz
 ENV ANT_HOME /opt/ant
 ENV PATH ${PATH}:/opt/ant/bin
-
-# Set JDK to be 32bit
-COPY set_java $M2
-RUN if [ "x${JAVA_VERSION}" = "x17" ]; then \
-      rm $M2/set_java; \
-    else \
-      $M2/set_java && rm $M2/set_java; \
-    fi
 
 CMD ["mvn","-version"]

@@ -1,4 +1,4 @@
-FROM registry.uk.glss.ir/kubesphere/builder-base:v0.0.1
+FROM builder-base
 
 RUN yum install -y krb5-libs gcc libicu openssl-libs compat-openssl10 libgdiplus
 

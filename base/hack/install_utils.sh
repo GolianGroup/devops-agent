@@ -6,7 +6,7 @@ echo $ARCH
 
 if [[ ${EXCLUDE_DOCKER} != '1' ]]; then
   # Docker
-  DOCKER_VERSION=18.09.9
+  DOCKER_VERSION=23.0.3
   if [[ ${ARCH} == 'x86_64' ]]; then
     curl -f https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz | tar xvz && \
     mv docker/docker /usr/bin/ && \
@@ -20,6 +20,12 @@ if [[ ${EXCLUDE_DOCKER} != '1' ]]; then
     echo "do not support this arch"
     exit 1
   fi
+
+  # Docker Buildx
+  BUILDX_VERSION=0.14.0
+  mkdir -p /root/.docker/cli-plugins
+  curl -SL https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64 -o /root/.docker/cli-plugins/docker-buildx
+  chmod +x /root/.docker/cli-plugins/docker-buildx
 fi
 
 # Helm

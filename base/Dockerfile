@@ -1,8 +1,15 @@
-FROM centos:7
+FROM centos:8
 
-# Install utils
-RUN yum install -y epel-release ca-certificates unzip which make wget zip bzip2 gcc gcc-c++ curl-devel autoconf expat-devel gettext-devel openssl-devel perl-devel zlib-devel python-pip && \
-  yum -y clean all --enablerepo='*'
+USER root
+
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo && \
+  sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
+
+RUN dnf update -y && \
+  dnf install -y epel-release && \
+  dnf install -y autoconf nc python3 python3-pip python3-devel python3-setuptools python3-wheel && \
+  dnf install -y gcc gcc-c++ make wget curl unzip bzip2 openssl-devel expat-devel gettext-devel perl-devel zlib-devel && \
+  dnf clean all
 
 # Add Amazon Corretto repository
 RUN rpm --import https://yum.corretto.aws/corretto.key && \
@@ -15,17 +22,21 @@ RUN yum install -y java-17-amazon-corretto-devel && \
 # Set JAVA_HOME environment variable
 ENV JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto
 
+# Install dependencies required for Git HTTPS support
+RUN dnf install -y curl-devel expat-devel gettext-devel openssl-devel zlib-devel && \
+  dnf clean all
+
 RUN wget https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.9.5.tar.gz && \
-    tar zxvf git-2.9.5.tar.gz --no-same-owner && \
-    cd git-2.9.5 && \
-    make configure && \
-    ./configure prefix=/usr/local/git/ && \
-    make && \
-    make install && \
-    mv /usr/local/git/bin/git /usr/bin/ && \
-    cd ..&& \
-    rm -rf git-2.9.5.tar.gz git-2.9.5 && \
-    git version
+  tar zxvf git-2.9.5.tar.gz --no-same-owner && \
+  cd git-2.9.5 && \
+  make configure && \
+  ./configure prefix=/usr/local/git/ && \
+  make && \
+  make install && \
+  mv /usr/local/git/bin/git /usr/bin/ && \
+  cd ..&& \
+  rm -rf git-2.9.5.tar.gz git-2.9.5 && \
+  git version
 
 # Set the locale(en_US.UTF-8)
 ENV LANG en_US.UTF-8
@@ -43,12 +54,13 @@ RUN curl -o sonar_scanner.zip https://binaries.sonarsource.com/Distribution/sona
 
 ENV PATH $PATH:/usr/bin/sonar-scanner-5.0.1.3006-linux/bin
 
-# Copy Kaniko executor binary from the official Kaniko image
-COPY --from=gcr.io/kaniko-project/executor:latest /kaniko/executor /usr/local/bin/kaniko
 # Set the PATH environment variable to include Kaniko
 ENV PATH=$PATH:/usr/local/bin
 
 COPY ./ ./
 RUN ./hack/install_utils.sh && rm -rf ./*
+
+# Set the PATH environment variable to include Docker Buildx
+ENV PATH=$PATH:/root/.docker/cli-plugins
 
 CMD ["docker","version"]
